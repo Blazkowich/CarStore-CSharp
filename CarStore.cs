@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Reflection;
+using CarStoreGarage;
 using Carnamespace;
 namespace CarStore
 {
@@ -8,13 +9,13 @@ namespace CarStore
 	{
 		private string owner;
 		private double income;
-		private Dictionary<(string, string), Car> carsGarage;
+		private Garage garage;
 
 		public Carstore(string owner)
         {
 			this.owner = owner;
 			income = 0;
-            carsGarage = new Dictionary<(string, string), Car>();
+			garage = new Garage();
             
 		}
 
@@ -32,16 +33,7 @@ namespace CarStore
 			Console.WriteLine("Enter Price Of The Car: ");
 			double price = double.Parse(Console.ReadLine());
 
-			var carKey = (manufacturer, model);
-
-			if (carsGarage.ContainsKey(carKey))
-			{
-				carsGarage[carKey].Add(quantity);
-			}
-			else
-			{
-				carsGarage[carKey] = new Car(manufacturer, model, price, quantity);
-			}
+			garage.AddCar(manufacturer, model, price, quantity);
 		}
 
 		public void SellCar()
@@ -55,45 +47,23 @@ namespace CarStore
 			Console.WriteLine("Enter Quantity: ");
 			int quantity = int.Parse(Console.ReadLine());
 
-			var carKey = (manufacturer, model);
-
-			if (!carsGarage.ContainsKey(carKey))
+			if (garage.RemoveCar(manufacturer,model,quantity))
 			{
-				Console.WriteLine("Requested Car Doesn't Exist.");
-			}
-			else
-			{
-				Car car = carsGarage[carKey];
-				if (!car.Remove(quantity))
-				{
-					return;
-				}
-				double cost = car.Price * quantity;
-				Console.WriteLine($"Sell {quantity} cars for {cost}$");
+				double cost = garage.GetCarPrice(manufacturer, model) * quantity;
+				Console.WriteLine($"Sell {quantity} cars in {cost}$");
 				income += cost;
-
-				if(car.Quantity == 0)
-				{
-					carsGarage.Remove(carKey);
-				}
 			}
         }
 
 		public void DisplayCars()
 		{
-			var sortedCars = carsGarage.Values.OrderBy(c => c.Manufacturer).ThenBy(c => c.Model);
-
-			foreach (var car in sortedCars)
-			{
-				Console.WriteLine(car);
-			}
+			garage.DisplayCars();
 		}
 
         public override string ToString()
         {
-			int numCars = carsGarage.Values.Sum(c => c.Quantity);
+			int numCars = garage.GetTotalQuantity();
 			return $"{owner}'s car store: Holds {numCars} cars and {income}$";
         }
     }
 }
-
